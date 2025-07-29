@@ -50,7 +50,7 @@ textarea {
   border-radius: 4px;
   box-sizing: border-box;
   font-size: 15px;
-  box-shadow: 10px 10px 5px 0px rgb(138,128,128);
+  box-shadow: 5px 5px 5px 0px rgb(138,128,128);
 }
 
 textarea {
@@ -275,33 +275,32 @@ label i {
 
 
 /* Header y Footer */
+/* HEADER CORREGIDO */
 .header {
   background-color: #3a3a3c;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 20px;
+  padding: 10px 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
 }
 
 .header-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  width: 100%;
+  max-width: 700px; /* Mismo ancho que el formulario */
+  padding: 0 20px;
 }
 
 .logo-container {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  justify-content: center; /* Centra el logo */
 }
 
 .logo {
   height: 40px;
   width: auto;
-  align-items: center ;
+  max-width: 100%; /* Asegura que no se desborde */
 }
 
 .logo-text {
@@ -450,4 +449,82 @@ select {
   font-size: 0.8em;
   margin-top: 5px;
   animation: fadeIn 0.3s ease;
+}
+
+.global-error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+  animation: fadeIn 0.3s ease;
+}
+
+.error-message {
+  color: #c62828;
+  font-size: 0.85em;
+  margin-top: 5px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para el modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
+.success-icon {
+  color: #28a745;
+  font-size: 50px;
+  margin-bottom: 15px;
+}
+
+.btn-close-modal {
+  background: #005590;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 20px;
+  font-size: 16px;
+}
+
+.btn-close-modal:hover {
+  background: #4ea8ed;
 }

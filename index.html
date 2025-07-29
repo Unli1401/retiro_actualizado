@@ -366,7 +366,7 @@
     
     <div id="mensajeEnviado" class="hidden">
       <i class="fas fa-check-circle success-icon"></i>
-      <p>¡Formulario enviado con éxito!</p>
+      <p>¡Datos enviados con éxito!</p>
     </div>
   </div>
 
@@ -392,6 +392,17 @@
     });
   });
 </script>
+
+<!-- Modal de éxito -->
+<div id="successModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <i class="fas fa-check-circle success-icon"></i>
+    <h2>¡Formulario enviado con éxito!</h2>
+    <p>Tus datos han sido recibidos correctamente.</p>
+    <button class="btn-close-modal">Aceptar</button>
+  </div>
+</div>
 
 </body>
 </html>

@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("retiroForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
     try {
       // Validar todos los pasos antes de enviar
       if (!validateAllSteps()) {
@@ -42,82 +45,44 @@ document.addEventListener('DOMContentLoaded', function() {
       this.appendChild(loader);
       loader.style.display = 'block';
 
-      const formData = new FormData(this);
-      const data = Object.fromEntries(formData.entries());
-
       // Guardar en Firebase
       await db.collection("checklists_retiro").add(data);
       
       // Enviar por EmailJS
       await sendEmail(data);
       
-      // Mostrar modal de éxito
-      showSuccessModal();
+      // Mostrar mensaje de éxito
+      document.getElementById("mensajeEnviado").classList.remove("hidden");
       this.reset();
       
       // Volver al primer paso
       goToStep('contacto');
+      
+      // Ocultar mensaje después de 5 segundos
+      setTimeout(() => {
+        document.getElementById("mensajeEnviado").classList.add("hidden");
+      }, 5000);
 
     } catch (error) {
-      showGlobalError("Hubo un error al enviar el formulario: " + error.message);
+      alert("Hubo un error al guardar: " + error);
       console.error("Error:", error);
     } finally {
       const loader = this.querySelector('.loader');
       if (loader) loader.style.display = 'none';
     }
   });
-
-  // Configurar evento para cerrar modal
-  document.querySelector('.modal-close').addEventListener('click', function() {
-    document.getElementById('successModal').classList.add('hidden');
-  });
-
-  document.querySelector('.btn-close-modal').addEventListener('click', function() {
-    document.getElementById('successModal').classList.add('hidden');
-  });
-
-  // Cerrar modal al hacer clic fuera del contenido
-  document.getElementById('successModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      this.classList.add('hidden');
-    }
-  });
 });
-
-// Función para mostrar el modal de éxito
-function showSuccessModal() {
-  const modal = document.getElementById('successModal');
-  modal.classList.remove('hidden');
-}
-
-// Función para mostrar errores globales
-function showGlobalError(message) {
-  const errorContainer = document.getElementById('global-error') || document.createElement('div');
-  errorContainer.id = 'global-error';
-  errorContainer.className = 'global-error-message';
-  errorContainer.textContent = message;
-  
-  if (!document.getElementById('global-error')) {
-    document.querySelector('.form-container').prepend(errorContainer);
-  }
-}
-
-// Función para limpiar errores globales
-function clearGlobalError() {
-  const errorContainer = document.getElementById('global-error');
-  if (errorContainer) errorContainer.remove();
-}
 
 // Función para validar todos los pasos antes de enviar
 function validateAllSteps() {
-  const steps = ['step-contacto', 'step-retiro', 'step-accesos'];
+  const steps = ['step-contacto', 'step-retiro', 'step-accesos']; // Agregado prefijo step-
   let allValid = true;
   
   steps.forEach(stepId => {
     if (!validateStep(stepId)) {
+      // Ir al primer paso con error
       if (allValid) {
         goToStep(stepId.replace('step-', ''));
-        showStepErrorMessage(stepId);
       }
       allValid = false;
     }
@@ -126,102 +91,9 @@ function validateAllSteps() {
   return allValid;
 }
 
-// Mostrar mensaje específico según el paso con errores
-function showStepErrorMessage(stepId) {
-  let message = '';
-  switch(stepId) {
-    case 'step-contacto':
-      message = 'Por favor completa correctamente los datos de contacto (faltan campos o hay correos inválidos)';
-      break;
-    case 'step-retiro':
-      message = 'Por favor completa correctamente los detalles del retiro';
-      break;
-    case 'step-accesos':
-      message = 'Por favor completa correctamente los requisitos de acceso';
-      break;
-  }
-  showGlobalError(message);
-}
-
-// Función para validar un paso específico
-function validateStep(stepId) {
-  const step = document.getElementById(stepId);
-  if (!step) return false;
-
-  // Limpiar errores previos
-  step.querySelectorAll('.error-message').forEach(el => el.remove());
-  step.querySelectorAll('input, select, textarea').forEach(el => {
-    el.style.borderColor = '';
-  });
-
-  let isValid = true;
-  const inputs = step.querySelectorAll('[required]');
-
-  inputs.forEach(input => {
-    const value = input.value.trim();
-    let error = '';
-    
-    // Validación para radios
-    if (input.type === 'radio') {
-      const radioGroup = step.querySelectorAll(`input[type="radio"][name="${input.name}"]`);
-      if (!Array.from(radioGroup).some(radio => radio.checked)) {
-        error = 'Debe seleccionar una opción';
-      }
-    } 
-    // Validación para campos vacíos
-    else if (!value) {
-      error = 'Este campo es obligatorio';
-    } 
-    // Validación específica para emails
-    else if (input.type === 'email' && !validateEmail(value)) {
-      error = 'Ingrese un correo electrónico válido (ejemplo@dominio.com)';
-    }
-    // Validación para fechas
-    else if (input.type === 'date' && !validateDate(value)) {
-      error = 'Ingrese una fecha válida';
-    }
-    
-    if (error) {
-      isValid = false;
-      showFieldError(input, error);
-    }
-  });
-
-  return isValid;
-}
-
-// Validar formato de email
-function validateEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-}
-
-// Validar fecha (no puede ser anterior a hoy)
-function validateDate(dateString) {
-  const inputDate = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return inputDate >= today;
-}
-
-// Mostrar error en un campo específico
-function showFieldError(input, message) {
-  input.style.borderColor = '#ff4444';
-  
-  const errorMsg = document.createElement('div');
-  errorMsg.className = 'error-message';
-  errorMsg.textContent = message;
-  
-  // Insertar después del input o su contenedor
-  if (input.type === 'radio') {
-    input.closest('.status-options').after(errorMsg);
-  } else {
-    input.parentNode.insertBefore(errorMsg, input.nextSibling);
-  }
-}
-
 // Función para enviar el correo con todos los campos
 async function sendEmail(data) {
+  // Preparar datos para EmailJS según tu estructura requerida
   const emailData = {
     "00 empresa": data.empresa || 'No especificado',
     "01 quien_solicita": data.nombre || 'No especificado',
@@ -249,6 +121,8 @@ async function sendEmail(data) {
                  data.destino === 'scrap' ? 'Scrap (Desecho)' :
                  data.otro_destino || 'No especificado',
     "16 Observaciones": data.observaciones || 'Ninguna',
+    
+    // Campos adicionales para información completa
     "17 contacto_backup": data.nombre_backup ? 
                          `${data.nombre_backup} (Tel: ${data.telefono_backup || 'No'}, Email: ${data.correo_backup || 'No'})` : 
                          'No especificado',
@@ -270,6 +144,7 @@ async function sendEmail(data) {
     "27 documentacion": data.documentacion_requerida || 'Ninguna'
   };
 
+  // Modificar el ID del servicio de acuerdo a la configuración de EmailJS
   return emailjs.send("service_7aeeyab", "template_1uoe82d", emailData);
 }
 
@@ -309,7 +184,6 @@ function setupFormNavigation() {
       const nextStepId = this.dataset.next;
       
       if (validateStep(currentStep.id)) {
-        clearGlobalError();
         goToStep(nextStepId);
       }
     });
@@ -319,13 +193,62 @@ function setupFormNavigation() {
   document.querySelectorAll('.btn-prev').forEach(button => {
     button.addEventListener('click', function() {
       const prevStepId = this.dataset.prev;
-      clearGlobalError();
       goToStep(prevStepId);
     });
   });
 }
 
+function validateStep(stepId) {
+  const step = document.getElementById(stepId);
+  if (!step) {
+    console.error(`No se encontró el paso con ID: ${stepId}`);
+    return false;
+  }
+
+  // Limpiar errores previos
+  const existingErrors = step.querySelectorAll('.error-message');
+  existingErrors.forEach(error => error.remove());
+
+  // Validar campos requeridos
+  const inputs = step.querySelectorAll('[required]');
+  let isValid = true;
+
+  inputs.forEach(input => {
+    // Caso especial para radio buttons
+    if (input.type === 'radio') {
+      const radioGroupName = input.name;
+      const radioGroup = step.querySelectorAll(`input[type="radio"][name="${radioGroupName}"]`);
+      const isRadioChecked = Array.from(radioGroup).some(radio => radio.checked);
+      
+      if (!isRadioChecked && !radioGroup[0].closest('.status-options').nextElementSibling?.classList.contains('error-message')) {
+        isValid = false;
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.textContent = 'Debe seleccionar una opción';
+        radioGroup[0].closest('.status-options').after(errorMsg);
+      }
+    } 
+    // Para otros tipos de campos
+    else if (!input.value.trim()) {
+      isValid = false;
+      input.style.borderColor = 'red';
+      
+      if (!input.nextElementSibling?.classList.contains('error-message')) {
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.textContent = 'Este campo es obligatorio';
+        input.after(errorMsg);
+      }
+    } else {
+      input.style.borderColor = '#ccc';
+    }
+  });
+
+  return isValid;
+}
+
 function goToStep(stepId) {
+  // Asegurarse de que el ID tenga el prefijo 'step-'
   const fullStepId = stepId.startsWith('step-') ? stepId : `step-${stepId}`;
   
   document.querySelectorAll('.form-step').forEach(step => {
@@ -333,12 +256,13 @@ function goToStep(stepId) {
   });
   
   const stepElement = document.getElementById(fullStepId);
-  if (stepElement) {
-    stepElement.classList.add('active');
-    updateProgressBar(stepId);
-    // Scroll suave al inicio del formulario
-    document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth' });
+  if (!stepElement) {
+    console.error(`No se encontró el paso con ID: ${fullStepId}`);
+    return;
   }
+  
+  stepElement.classList.add('active');
+  updateProgressBar(stepId);
 }
 
 function updateProgressBar(activeStep) {
