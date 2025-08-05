@@ -270,7 +270,7 @@ async function sendEmail(data) {
     "27 documentacion": data.documentacion_requerida || 'Ninguna'
   };
 
-  return emailjs.send("service_bvl2xxi", "template_1uoe82d", emailData);
+  return emailjs.send("service_7aeeyab", "template_1uoe82d", emailData);
 }
 
 // Funciones auxiliares
